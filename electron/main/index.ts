@@ -1,6 +1,7 @@
 import { BrowserWindow, app, shell } from "electron";
 import { release } from "node:os";
 import { join } from "node:path";
+import sqlite3 from "sqlite3";
 
 // The built directory structure
 //
