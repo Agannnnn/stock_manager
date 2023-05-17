@@ -1,16 +1,12 @@
 <script setup lang="ts">
 import Button from "./Button.vue";
+import Form from "./Form.vue";
 
 defineEmits(["closeForm"]);
 </script>
 
 <template>
-  <div class="w-screen h-screen absolute top-0 left-0 z-10">
-    <div
-      class="w-screen h-screen absolute top-0 left-0"
-      style="background-color: rgba(0, 0, 0, 0.5)"
-      @click="$emit('closeForm')"
-    ></div>
+  <Form @close-form="$emit('closeForm')">
     <form
       class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-lg border-2 border-primary"
     >
@@ -62,5 +58,5 @@ defineEmits(["closeForm"]);
         </div>
       </div>
     </form>
-  </div>
+  </Form>
 </template>
