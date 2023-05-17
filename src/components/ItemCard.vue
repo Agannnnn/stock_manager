@@ -2,14 +2,9 @@
 import { computed } from "vue";
 import Button from "./Button.vue";
 import CategoryButton from "./CategoryButton.vue";
+import { Item } from "../../model";
 
-const props = defineProps<{
-  id: string;
-  name: string;
-  categories: string[];
-  price: number;
-  qty: number;
-}>();
+const props = defineProps<Item>();
 defineEmits(["editItem"]);
 
 const formattedPrice = computed(() => {
@@ -18,6 +13,17 @@ const formattedPrice = computed(() => {
     currency: "IDR",
   }).format(props.price);
 });
+const splittedCategories = computed(() => {
+  return props.categories.split(",").map((category) => category.trim());
+});
+
+const saveForm = () => {
+  if (props.code?.length > 0) updateItem();
+  else saveNewItem();
+};
+
+const saveNewItem = () => {};
+const updateItem = () => {};
 </script>
 
 <template>
@@ -41,7 +47,7 @@ const formattedPrice = computed(() => {
       </div>
     </div>
     <div class="flex flex-col gap-2 text-right">
-      <RouterLink :to="`/transactions?item=${id}`">
+      <RouterLink :to="`/transactions?item=${code}`">
         <Button warning>TRANSAKSI</Button>
       </RouterLink>
       <div class="relative">
@@ -52,7 +58,7 @@ const formattedPrice = computed(() => {
           <li class="border-b-2 pb-1 border-primary">
             <button
               class="hover:text-gray-500 focus-within:text-gray-500"
-              @click="$emit('editItem', { id, name, categories, price, qty })"
+              @click="$emit('editItem', { code, name, categories, price, qty })"
             >
               UBAH DATA
             </button>
