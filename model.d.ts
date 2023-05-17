@@ -1,4 +1,4 @@
-export interface Item {
+interface Items {
   code: string;
   name: string;
   image: string;
@@ -6,3 +6,5 @@ export interface Item {
   price: number;
   categories: string;
 }
+
+export { Items };
