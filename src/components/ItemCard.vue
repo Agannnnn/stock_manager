@@ -102,6 +102,11 @@ const splittedCategories = computed(() => {
           class="hidden peer-focus-within:flex flex-col gap-1 py-2 px-2 border-2 border-primary rounded-md bg-warning text-primary font-semibold absolute top-full right-0 mt-1 text-right w-max"
         >
           <li class="border-b-2 pb-1 border-primary">
+            <button class="hover:text-gray-500 focus-within:text-gray-500">
+              RESTOCK
+            </button>
+          </li>
+          <li class="border-b-2 pb-1 border-primary">
             <button
               class="hover:text-gray-500 focus-within:text-gray-500"
               @click="$emit('editItem', { code, name, categories, price, qty })"
