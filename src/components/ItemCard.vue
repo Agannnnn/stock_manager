@@ -2,7 +2,15 @@
 import { computed } from "vue";
 import Button from "./Button.vue";
 import CategoryButton from "./CategoryButton.vue";
-import { Item } from "../../model";
+
+interface Item {
+  code: string;
+  name: string;
+  image: string;
+  qty: number;
+  price: number;
+  categories: string;
+}
 
 const props = defineProps<Item>();
 defineEmits(["editItem"]);
@@ -14,31 +22,34 @@ const formattedPrice = computed(() => {
   }).format(props.price);
 });
 const splittedCategories = computed(() => {
-  return props.categories.split(",").map((category) => category.trim());
+  return props.categories?.split(",").map((category) => category.trim());
 });
-
-const saveForm = () => {
-  if (props.code?.length > 0) updateItem();
-  else saveNewItem();
-};
-
-const saveNewItem = () => {};
-const updateItem = () => {};
 </script>
 
 <template>
   <article
-    class="grid grid-flow-col items-start gap-5 p-3 rounded-lg bg-white text-primary border-2 border-primary shadow-sm shadow-primary"
+    class="flex flex-row items-start gap-5 p-3 rounded-lg bg-white text-primary border-2 border-primary shadow-sm shadow-primary"
     style="grid-template-columns: 1fr 2fr 1fr"
   >
-    <img src="/Ceiling.jpg" class="rounded-md" />
+    <img v-if="image" :src="image" class="rounded-md w-[240px]" />
+    <div v-else class="animate-pulse">
+      <span
+        class="block bg-current w-[240px] h-[120px] opacity-50 rounded-md"
+      ></span>
+    </div>
 
-    <div class="flex flex-col justify-between gap-2">
+    <div
+      v-if="code && name && categories && price && qty"
+      class="flex flex-col justify-between self-stretch grow"
+    >
       <div>
-        <h2 class="text-3xl font-semibold">{{ id }}</h2>
+        <h2 class="text-3xl font-semibold">{{ code }}</h2>
         <h4 class="text-xl font-semibold">{{ name }}</h4>
         <div class="flex flex-row flex-wrap mt-2">
-          <CategoryButton v-for="category in categories" :category="category" />
+          <CategoryButton
+            v-for="category in splittedCategories"
+            :category="category"
+          />
         </div>
       </div>
       <div>
@@ -46,7 +57,42 @@ const updateItem = () => {};
         <p class="font-semibold">TERSEDIA {{ qty }} BOX</p>
       </div>
     </div>
-    <div class="flex flex-col gap-2 text-right">
+    <div v-else class="flex flex-col justify-between h-full anime-pulse">
+      <div class="flex flex-col gap-2">
+        <span
+          class="block bg-current w-[7em] h-[1em] opacity-50 rounded-md"
+        ></span>
+        <span
+          class="block bg-current w-[12em] h-[1em] opacity-50 rounded-md"
+        ></span>
+        <div class="flex gap-2">
+          <span
+            class="block bg-current w-[7em] h-[1em] opacity-50 rounded-md"
+          ></span>
+          <span
+            class="block bg-current w-[7em] h-[1em] opacity-50 rounded-md"
+          ></span>
+          <span
+            class="block bg-current w-[7em] h-[1em] opacity-50 rounded-md"
+          ></span>
+        </div>
+      </div>
+      <div class="flex flex-col gap-2">
+        <span
+          class="block bg-current w-[4em] h-[1em] opacity-50 rounded-md"
+        ></span>
+        <div class="flex gap-2">
+          <span
+            class="block bg-current w-[7em] h-[1em] opacity-50 rounded-md"
+          ></span>
+          <span
+            class="block bg-current w-[9em] h-[1em] opacity-50 rounded-md"
+          ></span>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="code" class="flex flex-row gap-2 justify-end">
       <RouterLink :to="`/transactions?item=${code}`">
         <Button warning>TRANSAKSI</Button>
       </RouterLink>
@@ -70,6 +116,14 @@ const updateItem = () => {};
           </li>
         </ul>
       </div>
+    </div>
+    <div v-else class="flex flex-row gap-2 justify-end">
+      <span
+        class="block bg-current w-[9em] h-[2em] opacity-50 rounded-md"
+      ></span>
+      <span
+        class="block bg-current w-[4em] h-[2em] opacity-50 rounded-md"
+      ></span>
     </div>
   </article>
 </template>
