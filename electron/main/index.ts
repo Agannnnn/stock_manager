@@ -1,4 +1,4 @@
-import { BrowserWindow, app, ipcMain, shell } from "electron";
+import { BrowserWindow, app, shell } from "electron";
 import { release } from "node:os";
 import { join } from "node:path";
 
@@ -40,6 +40,8 @@ async function createWindow() {
   win = new BrowserWindow({
     title: "Main window",
     icon: join(process.env.PUBLIC, "favicon.ico"),
+    minWidth: 1000,
+    minHeight: 600,
     webPreferences: {
       preload,
     },
@@ -49,8 +51,9 @@ async function createWindow() {
     // electron-vite-vue#298
     win.loadURL(url);
     // Open devTool if the app is not packaged
-    // win.webContents.openDevTools();
+    win.webContents.openDevTools();
   } else {
+    win.menuBarVisible = false;
     win.loadFile(indexHtml);
   }
 
@@ -84,8 +87,4 @@ app.on("activate", () => {
   } else {
     createWindow();
   }
-});
-
-ipcMain.handle("my-ipc", () => {
-  return "halo";
 });
