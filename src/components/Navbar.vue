@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import Container from "./Container.vue";
+
+const activeLinkClass = "text-gray-300 pointer-events-none";
 </script>
 
 <template>
@@ -11,9 +13,7 @@ import Container from "./Container.vue";
           <li>
             <RouterLink
               to="/"
-              :class="{
-                'text-gray-300 pointer-events-none': $route.name == 'items',
-              }"
+              :class="$route.name === 'items' ? activeLinkClass : ''"
             >
               DAFTAR ITEM
             </RouterLink>
@@ -22,10 +22,7 @@ import Container from "./Container.vue";
           <li>
             <RouterLink
               to="/transactions"
-              :class="{
-                'text-gray-300 pointer-events-none':
-                  $route.name == 'transactions',
-              }"
+              :class="$route.name === 'transactions' ? activeLinkClass : ''"
             >
               RIWAYAT TRANSAKSI
             </RouterLink>
