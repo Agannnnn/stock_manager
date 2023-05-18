@@ -33,9 +33,9 @@ const splittedCategories = computed(() => {
     style="grid-template-columns: 1fr 2fr 1fr"
   >
     <img v-if="image" :src="image" class="rounded-md w-[240px]" />
-    <div v-else class="animate-pulse">
+    <div v-else class="animate-pulse self-stretch">
       <span
-        class="block bg-current w-[240px] h-[120px] opacity-50 rounded-md"
+        class="block bg-current w-[240px] h-full opacity-50 rounded-md"
       ></span>
     </div>
 
@@ -46,7 +46,7 @@ const splittedCategories = computed(() => {
       <div>
         <h2 class="text-3xl font-semibold">{{ code }}</h2>
         <h4 class="text-xl font-semibold">{{ name }}</h4>
-        <div class="flex flex-row flex-wrap mt-2">
+        <div class="flex flex-row flex-wrap gap-1 mt-2">
           <CategoryButton
             v-for="category in splittedCategories"
             :category="category"
