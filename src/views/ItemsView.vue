@@ -1,60 +1,69 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import AddItemForm from "../components/AddItemForm.vue";
+import type { Items } from "../../model";
 import Button from "../components/Button.vue";
 import Container from "../components/Container.vue";
 import ItemCard from "../components/ItemCard.vue";
+import ItemForm from "../components/ItemForm.vue";
 import RestockForm from "../components/RestockForm.vue";
 import SearchBar from "../components/SearchBar.vue";
 
-const addItemFormOpen = ref(false);
-const restockFormOpen = ref(false);
+interface ItemForm extends Items {
+  active: boolean;
+}
 
-window.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    addItemFormOpen.value = false;
-    restockFormOpen.value = false;
-  }
-});
+const items = ref<Items[]>(await (window as any).db.getItems());
+const itemForm = ref({
+  active: false,
+} as ItemForm);
+const restockForm = ref({ active: false, amount: 0 });
 
-const openEditItemForm = (previousData: {
-  id: string;
-  name: string;
-  categories: string[];
-  price: number;
-  qty: number;
-}) => {};
+const editItem = (oldValue: Items) => {
+  itemForm.value.code = oldValue.code;
+  itemForm.value.name = oldValue.name;
+  itemForm.value.image = oldValue.image;
+  itemForm.value.price = oldValue.price;
+  itemForm.value.qty = oldValue.qty;
+  itemForm.value.categories = oldValue.categories;
+  itemForm.value.active = true;
+};
 </script>
 
 <template>
-  <AddItemForm
-    v-if="addItemFormOpen"
-    @close-form="() => (addItemFormOpen = !addItemFormOpen)"
+  <ItemForm
+    :code="itemForm.code"
+    :name="itemForm.name"
+    :image="itemForm.image"
+    :qty="itemForm.qty"
+    :price="itemForm.price"
+    :categories="itemForm.categories"
+    v-if="itemForm.active"
+    @close-form="() => (itemForm.active = !itemForm.active)"
   />
 
   <RestockForm
-    v-if="restockFormOpen"
-    @close-form="() => (restockFormOpen = !restockFormOpen)"
+    v-if="restockForm.active"
+    @close-form="() => (restockForm.active = !restockForm.active)"
   />
   <br />
-  <SearchBar />
+  <SearchBar @update-items="(newItems: Items[]) => {items = newItems}" />
   <br />
   <Container class="flex flex-row justify-end gap-3">
-    <Button warning @click="() => (restockFormOpen = true)">
-      TAMBAH STOK ITEM
-    </Button>
-    <Button warning @click="() => (addItemFormOpen = true)">
+    <Button warning @click="() => (itemForm.active = true)">
       TAMBAH ENTRI ITEM
     </Button>
   </Container>
   <br />
   <Container class="flex flex-col gap-3">
     <ItemCard
-      id="AWAWA"
-      name="PVC"
-      :categories="['Black']"
-      :price="200000"
-      :qty="10"
+      v-for="item in items"
+      :code="item.code"
+      :name="item.name"
+      :image="item.image ?? ''"
+      :categories="item.categories"
+      :price="Number.parseInt(`${item.price}`)"
+      :qty="Number.parseInt(`${item.qty}`)"
+      @edit-item="editItem"
     />
   </Container>
 </template>

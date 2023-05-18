@@ -1,5 +1,17 @@
 <script setup lang="ts">
+import { ref, watch } from "vue";
 import Container from "./Container.vue";
+import { Items } from "../../model";
+
+const emits = defineEmits(["updateItems"]);
+
+const keyword = ref("");
+watch(keyword, () => findItems());
+
+const findItems = async () => {
+  const items: Items[] = await (window as any).db.getItems(keyword.value);
+  emits("updateItems", items);
+};
 </script>
 
 <template>
@@ -10,7 +22,8 @@ import Container from "./Container.vue";
       type="text"
       class="border-r-2 border-primary flex-grow outline-none"
       placeholder="Ketik kode item di sini"
+      v-model="keyword"
     />
-    <button>CARI</button>
+    <button @click="findItems">CARI</button>
   </Container>
 </template>

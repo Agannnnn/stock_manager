@@ -1,18 +1,9 @@
-import { BrowserWindow, app, shell } from "electron";
+import { BrowserWindow, app, ipcMain, shell } from "electron";
 import { release } from "node:os";
 import { join } from "node:path";
-import sqlite3 from "sqlite3";
+import postgres, { Sql } from "postgres";
+import type { Items } from "../../model";
 
-// The built directory structure
-//
-// ├─┬ dist-electron
-// │ ├─┬ main
-// │ │ └── index.js    > Electron-Main
-// │ └─┬ preload
-// │   └── index.js    > Preload-Scripts
-// ├─┬ dist
-// │ └── index.html    > Electron-Renderer
-//
 process.env.DIST_ELECTRON = join(__dirname, "..");
 process.env.DIST = join(process.env.DIST_ELECTRON, "../dist");
 process.env.PUBLIC = process.env.VITE_DEV_SERVER_URL
@@ -31,8 +22,8 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 let win: BrowserWindow | null = null;
+let sql: Sql;
 
-// Here, you can also use other preload
 const preload = join(__dirname, "../preload/index.js");
 const url = process.env.VITE_DEV_SERVER_URL;
 const indexHtml = join(process.env.DIST, "index.html");
@@ -46,6 +37,14 @@ async function createWindow() {
     webPreferences: {
       preload,
     },
+  });
+
+  sql = postgres({
+    host: "localhost",
+    port: 5432,
+    user: "postgres",
+    pass: "root",
+    db: "db_stock_manager",
   });
 
   if (process.env.VITE_DEV_SERVER_URL) {
@@ -89,3 +88,20 @@ app.on("activate", () => {
     createWindow();
   }
 });
+
+// Fetch all items
+const getAllItems = async () => {
+  const items = await sql<Items[]>`select * from items`;
+  return items;
+};
+ipcMain.handle("get-all-items", getAllItems);
+
+// Fetch items that mathces search keyword
+const findItems = async (keyword: string) => {
+  keyword = keyword.toLowerCase();
+  const items = await sql<
+    Items[]
+  >`select * from items where LOWER(code) LIKE ${`%${keyword}%`} OR LOWER(name) LIKE ${`%${keyword}%`} OR LOWER(categories) LIKE ${`%${keyword}%`}`;
+  return items;
+};
+ipcMain.handle("find-items", (_, keyword) => findItems(keyword));
