@@ -7,7 +7,9 @@ import Navbar from "./components/Navbar.vue";
   <div class="flex flex-col min-h-screen">
     <Navbar />
     <main class="flex-grow bg-secondary px-2">
-      <RouterView />
+      <Suspense>
+        <RouterView />
+      </Suspense>
     </main>
   </div>
 </template>
