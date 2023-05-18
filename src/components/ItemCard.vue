@@ -93,7 +93,7 @@ const splittedCategories = computed(() => {
       </div>
     </div>
 
-    <div v-if="code" class="flex flex-row gap-2 justify-end">
+    <div v-if="code" class="flex flex-row gap-2 justify-end flex-wrap">
       <RouterLink :to="`/transactions?item=${code}`">
         <Button warning>TRANSAKSI</Button>
       </RouterLink>
