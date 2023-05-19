@@ -1,19 +1,18 @@
-import { BrowserWindow, Notification, app, ipcMain, shell } from "electron";
+import {
+  BrowserWindow,
+  Notification,
+  Tray,
+  app,
+  ipcMain,
+  nativeImage,
+  shell,
+} from "electron";
+import { createHash, randomBytes } from "node:crypto";
+import { copyFileSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { release } from "node:os";
-import path, { extname, join } from "node:path";
+import { extname, join } from "node:path";
 import postgres, { Sql } from "postgres";
 import type { Items } from "../../model";
-import { createHash, getRandomValues, randomBytes } from "node:crypto";
-import {
-  copyFile,
-  copyFileSync,
-  existsSync,
-  fstat,
-  mkdir,
-  mkdirSync,
-  writeFileSync,
-} from "node:fs";
-import { writeFile } from "node:fs/promises";
 
 process.env.DIST_ELECTRON = join(__dirname, "..");
 process.env.DIST = join(process.env.DIST_ELECTRON, "../dist");
@@ -109,7 +108,15 @@ app.on("activate", () => {
 
 // Fetch all items
 const getAllItems = async () => {
-  const items = await sql<Items[]>`select * from items`;
+  win.setProgressBar(2);
+  const items = (await sql<Items[]>`select * from items`).map((item) => {
+    item.image = nativeImage
+      .createFromPath(join(uploadedImages, `/${item.image}`))
+      .toDataURL();
+    return item;
+  });
+  win.setProgressBar(-1);
+
   return items;
 };
 ipcMain.handle("get-all-items", getAllItems);
@@ -117,20 +124,33 @@ ipcMain.handle("get-all-items", getAllItems);
 // Fetch items that mathces search keyword
 const findItems = async (keyword: string) => {
   keyword = keyword.toLowerCase();
-  const items = await sql<
-    Items[]
-  >`select * from items where LOWER(code) LIKE ${`%${keyword}%`} OR LOWER(name) LIKE ${`%${keyword}%`} OR LOWER(categories) LIKE ${`%${keyword}%`}`;
+
+  win.setProgressBar(2);
+  const items = (
+    await sql<
+      Items[]
+    >`select * from items where LOWER(code) LIKE ${`%${keyword}%`} OR LOWER(name) LIKE ${`%${keyword}%`} OR LOWER(categories) LIKE ${`%${keyword}%`}`
+  ).map((item) => {
+    item.image = nativeImage
+      .createFromPath(join(uploadedImages, `/${item.image}`))
+      .toDataURL();
+    return item;
+  });
+  win.setProgressBar(-1);
+
   return items;
 };
 ipcMain.handle("find-items", (_, keyword) => findItems(keyword));
 
 // Save Item
 const saveItem = async (item: Items, uploadedImagePath: string) => {
-  const filename = createHash("sha256").update(randomBytes(32)).digest("hex");
-  copyFileSync(
-    uploadedImagePath,
-    join(uploadedImages, `/${filename}${extname(uploadedImagePath)}`)
-  );
+  const filename = createHash("sha256")
+    .update(randomBytes(32))
+    .digest("hex")
+    .concat(extname(uploadedImagePath));
+  copyFileSync(uploadedImagePath, join(uploadedImages, `/${filename}`));
+
+  item.image = filename;
 
   const itemCode = await sql`insert into items ${sql(
     item,
@@ -144,12 +164,14 @@ const saveItem = async (item: Items, uploadedImagePath: string) => {
 
   if (itemCode.count > 0) {
     new Notification({
+      icon: join(process.env.PUBLIC, "favicon.ico"),
       title: "Proses Berhasil",
       body: "Item baru telah disimpan",
     }).show();
     return true;
   } else {
     new Notification({
+      icon: join(process.env.PUBLIC, "favicon.ico"),
       title: "Proses Gagal",
       body: "Terjadi kesalahan saat menyimpan item baru",
     }).show();
@@ -157,3 +179,44 @@ const saveItem = async (item: Items, uploadedImagePath: string) => {
   }
 };
 ipcMain.handle("save-item", (_, ...args) => saveItem(args[0], args[1]));
+
+// Save Item
+const updateItem = async (item: Items, uploadedImagePath: string) => {
+  const oldItemImages = await sql<
+    { image: string }[]
+  >`select image from items where code = ${item.code}`;
+
+  rmSync(join(uploadedImagePath, oldItemImages[0].image));
+
+  const filename = createHash("sha256").update(randomBytes(32)).digest("hex");
+  copyFileSync(
+    uploadedImagePath,
+    join(uploadedImages, `/${filename}${extname(uploadedImagePath)}`)
+  );
+
+  const itemCode = await sql`update items set ${sql(
+    item,
+    "name",
+    "image",
+    "qty",
+    "price",
+    "categories"
+  )} where code = ${item.code} returning code`;
+
+  if (itemCode.count > 0) {
+    new Notification({
+      icon: join(process.env.PUBLIC, "favicon.ico"),
+      title: "Proses Berhasil",
+      body: "Item telah diperbarui",
+    }).show();
+    return true;
+  } else {
+    new Notification({
+      icon: join(process.env.PUBLIC, "favicon.ico"),
+      title: "Proses Gagal",
+      body: "Terjadi kesalahan saat memperbarui item",
+    }).show();
+    return false;
+  }
+};
+ipcMain.handle("update-item", (_, ...args) => updateItem(args[0], args[1]));
