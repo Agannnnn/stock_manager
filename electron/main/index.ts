@@ -1,7 +1,6 @@
 import {
   BrowserWindow,
   Notification,
-  Tray,
   app,
   ipcMain,
   nativeImage,
@@ -12,7 +11,7 @@ import { copyFileSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { release } from "node:os";
 import { extname, join } from "node:path";
 import postgres, { Sql } from "postgres";
-import type { Items } from "../../model";
+import { Items } from "../../model";
 
 process.env.DIST_ELECTRON = join(__dirname, "..");
 process.env.DIST = join(process.env.DIST_ELECTRON, "../dist");
@@ -109,10 +108,12 @@ app.on("activate", () => {
 // Fetch all items
 const getAllItems = async () => {
   win.setProgressBar(2);
-  const items = (await sql<Items[]>`select * from items`).map((item) => {
-    item.image = nativeImage
+  const items = (await sql`select * from items`).map((item) => {
+    item.imageExt = extname(item.image);
+    item.imageBuffer = nativeImage
       .createFromPath(join(uploadedImages, `/${item.image}`))
-      .toDataURL();
+      .toJPEG(75).buffer;
+
     return item;
   });
   win.setProgressBar(-1);
@@ -127,13 +128,13 @@ const findItems = async (keyword: string) => {
 
   win.setProgressBar(2);
   const items = (
-    await sql<
-      Items[]
-    >`select * from items where LOWER(code) LIKE ${`%${keyword}%`} OR LOWER(name) LIKE ${`%${keyword}%`} OR LOWER(categories) LIKE ${`%${keyword}%`}`
+    await sql`select * from items where LOWER(code) LIKE ${`%${keyword}%`} OR LOWER(name) LIKE ${`%${keyword}%`} OR LOWER(categories) LIKE ${`%${keyword}%`}`
   ).map((item) => {
-    item.image = nativeImage
+    item.imageExt = extname(item.image);
+    item.imageBuffer = nativeImage
       .createFromPath(join(uploadedImages, `/${item.image}`))
-      .toDataURL();
+      .toJPEG(75).buffer;
+
     return item;
   });
   win.setProgressBar(-1);
