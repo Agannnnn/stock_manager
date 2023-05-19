@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import Container from "./Container.vue";
 
-const activeLinkClass = "text-gray-300 pointer-events-none";
+const style =
+  "relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[3px] after:bg-primary";
 </script>
 
 <template>
@@ -12,14 +13,20 @@ const activeLinkClass = "text-gray-300 pointer-events-none";
         <div class="text-lg text-primary font-medium flex flex-row gap-4">
           <RouterLink
             to="/"
-            :class="$route.name === 'items' ? activeLinkClass : ''"
+            :class="[
+              style,
+              $route.name == 'items' ? 'after:block' : 'after:hidden',
+            ]"
           >
             DAFTAR ITEM
           </RouterLink>
           <span>|</span>
           <RouterLink
             to="/transactions"
-            :class="$route.name === 'transactions' ? activeLinkClass : ''"
+            :class="[
+              style,
+              $route.name == 'transactions' ? 'after:block' : 'after:hidden',
+            ]"
           >
             RIWAYAT TRANSAKSI
           </RouterLink>
