@@ -1,17 +1,8 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
 import Container from "./Container.vue";
-import { Items } from "../../model";
 
-const emits = defineEmits(["updateItems"]);
-
-const keyword = ref("");
-watch(keyword, () => findItems());
-
-const findItems = async () => {
-  const items: Items[] = await (window as any).db.getItems(keyword.value);
-  emits("updateItems", items);
-};
+defineProps<{ keyword: string }>();
+defineEmits(["update:keyword"]);
 </script>
 
 <template>
@@ -22,8 +13,9 @@ const findItems = async () => {
       type="text"
       class="border-r-2 border-primary flex-grow outline-none"
       placeholder="Ketik kode item di sini"
-      v-model="keyword"
+      :value="keyword"
+      @input="($event) => $emit('update:keyword', ($event.target as HTMLInputElement).value)"
     />
-    <button @click="findItems">CARI</button>
+    <button @click="$emit('update:keyword', keyword)">CARI</button>
   </Container>
 </template>
