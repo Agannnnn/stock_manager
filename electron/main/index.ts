@@ -1,8 +1,19 @@
-import { BrowserWindow, app, ipcMain, shell } from "electron";
+import { BrowserWindow, Notification, app, ipcMain, shell } from "electron";
 import { release } from "node:os";
-import { join } from "node:path";
+import path, { extname, join } from "node:path";
 import postgres, { Sql } from "postgres";
 import type { Items } from "../../model";
+import { createHash, getRandomValues, randomBytes } from "node:crypto";
+import {
+  copyFile,
+  copyFileSync,
+  existsSync,
+  fstat,
+  mkdir,
+  mkdirSync,
+  writeFileSync,
+} from "node:fs";
+import { writeFile } from "node:fs/promises";
 
 process.env.DIST_ELECTRON = join(__dirname, "..");
 process.env.DIST = join(process.env.DIST_ELECTRON, "../dist");
@@ -27,6 +38,7 @@ let sql: Sql;
 const preload = join(__dirname, "../preload/index.js");
 const url = process.env.VITE_DEV_SERVER_URL;
 const indexHtml = join(process.env.DIST, "index.html");
+const uploadedImages = join(app.getPath("documents"), "/Stock Manager");
 
 async function createWindow() {
   win = new BrowserWindow({
@@ -47,7 +59,13 @@ async function createWindow() {
     db: "db_stock_manager",
   });
 
+  // Checks if directory for images exists
+  if (!existsSync(uploadedImages)) {
+    mkdirSync(uploadedImages);
+  }
   if (process.env.VITE_DEV_SERVER_URL) {
+    // If not then make one
+
     // electron-vite-vue#298
     win.loadURL(url);
     // Open devTool if the app is not packaged
@@ -105,3 +123,37 @@ const findItems = async (keyword: string) => {
   return items;
 };
 ipcMain.handle("find-items", (_, keyword) => findItems(keyword));
+
+// Save Item
+const saveItem = async (item: Items, uploadedImagePath: string) => {
+  const filename = createHash("sha256").update(randomBytes(32)).digest("hex");
+  copyFileSync(
+    uploadedImagePath,
+    join(uploadedImages, `/${filename}${extname(uploadedImagePath)}`)
+  );
+
+  const itemCode = await sql`insert into items ${sql(
+    item,
+    "code",
+    "name",
+    "image",
+    "qty",
+    "price",
+    "categories"
+  )} returning code`;
+
+  if (itemCode.count > 0) {
+    new Notification({
+      title: "Proses Berhasil",
+      body: "Item baru telah disimpan",
+    }).show();
+    return true;
+  } else {
+    new Notification({
+      title: "Proses Gagal",
+      body: "Terjadi kesalahan saat menyimpan item baru",
+    }).show();
+    return false;
+  }
+};
+ipcMain.handle("save-item", (_, ...args) => saveItem(args[0], args[1]));

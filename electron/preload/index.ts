@@ -13,4 +13,7 @@ contextBridge.exposeInMainWorld("db", {
 
     return items;
   },
+  saveItem: async (item: Items, image: File) => {
+    await ipcRenderer.invoke("save-item", item, image.path);
+  },
 });
