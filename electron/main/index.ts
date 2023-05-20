@@ -42,8 +42,8 @@ async function createWindow() {
   win = new BrowserWindow({
     title: "Main window",
     icon: join(process.env.PUBLIC, "favicon.ico"),
-    minWidth: 1000,
-    minHeight: 600,
+    minWidth: 1300,
+    minHeight: 800,
     webPreferences: {
       preload,
     },
@@ -152,13 +152,24 @@ const findItems = async (keyword: string) => {
 };
 ipcMain.handle("find-items", (_, keyword) => findItems(keyword));
 
-// Save Item
-const saveItem = async (item: Items, uploadedImagePath: string) => {
+/**
+ * Function to save images
+ *
+ * @param imagePath Path to the image
+ */
+const saveImage = (imagePath: string) => {
   const filename = createHash("sha256")
     .update(randomBytes(32))
     .digest("hex")
-    .concat(extname(uploadedImagePath));
-  copyFileSync(uploadedImagePath, join(uploadedImages, `/${filename}`));
+    .concat(extname(imagePath));
+  copyFileSync(imagePath, join(uploadedImages, `/${filename}`));
+
+  return filename;
+};
+
+// Save Item
+const saveItem = async (item: Items, uploadedImagePath: string) => {
+  const filename = saveImage(uploadedImagePath);
 
   item.image = filename;
 
@@ -190,19 +201,16 @@ const saveItem = async (item: Items, uploadedImagePath: string) => {
 };
 ipcMain.handle("save-item", (_, ...args) => saveItem(args[0], args[1]));
 
-// Save Item
+// Update Item
 const updateItem = async (item: Items, uploadedImagePath: string) => {
   const oldItemImages = await sql<
     { image: string }[]
   >`select image from items where code = ${item.code}`;
 
-  rmSync(join(uploadedImagePath, oldItemImages[0].image));
+  rmSync(join(uploadedImages, `/${oldItemImages[0].image}`));
 
-  const filename = createHash("sha256").update(randomBytes(32)).digest("hex");
-  copyFileSync(
-    uploadedImagePath,
-    join(uploadedImages, `/${filename}${extname(uploadedImagePath)}`)
-  );
+  const filename = saveImage(uploadedImagePath);
+  item.image = filename;
 
   const itemCode = await sql`update items set ${sql(
     item,

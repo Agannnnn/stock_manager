@@ -25,6 +25,9 @@ contextBridge.exposeInMainWorld("db", {
   saveItem: async (item: Items, image: File) => {
     return await ipcRenderer.invoke("save-item", item, image.path);
   },
+  updateItem: async (item: Items, image: File) => {
+    return await ipcRenderer.invoke("update-item", item, image.path);
+  },
   deleteItem: async (item: Items) => {
     return await ipcRenderer.invoke("delete-item", item);
   },

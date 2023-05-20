@@ -21,6 +21,10 @@ const closeSaveItem = async () => {
   saveItem.value.open = false;
   refreshItems();
 };
+const editItem = (item: Items) => {
+  saveItem.value.open = true;
+  saveItem.value.item = item;
+};
 
 watch(keyword, async (val) => {
   items.value = await (window as any).db.getItems(val);
@@ -62,6 +66,7 @@ watch(keyword, async (val) => {
       :transactions="Number.parseInt(`${item.transactions}`) ?? 0"
       @filter-by-category="(category) => (keyword = category)"
       @refresh-items="refreshItems"
+      @edit-item="editItem"
     />
   </Container>
 </template>

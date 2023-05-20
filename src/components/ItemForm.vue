@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { Items } from "../../model";
 import Button from "./Button.vue";
 import Form from "./Form.vue";
-import { Items } from "../../model";
 
 const props = defineProps<{
   code?: string;
@@ -51,6 +51,16 @@ const saveForm = async () => {
       emits("closeForm");
     return;
   }
+  const item: Items = {
+    code: props.code,
+    name: inputName.value,
+    image: inputImage.value!.name,
+    qty: inputQty.value,
+    price: inputPrice.value,
+    categories: inputCategories.value,
+  };
+  if (await (window as any).db.updateItem(item, inputImage.value))
+    emits("closeForm");
 };
 </script>
 
