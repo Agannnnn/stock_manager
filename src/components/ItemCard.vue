@@ -2,19 +2,18 @@
 import { computed } from "vue";
 import Button from "./Button.vue";
 import CategoryButton from "./CategoryButton.vue";
-import { Items } from "../../model";
 
-interface Item {
+interface Items {
   code: string;
   name: string;
   image: string;
   qty: number;
   price: number;
   categories: string;
+  transactions?: number;
 }
-
-const props = defineProps<Item>();
-defineEmits(["editItem", "restockItem"]);
+const props = defineProps<Items>();
+defineEmits(["editItem", "restockItem", "filterByCategory", "refreshItems"]);
 
 const formattedPrice = computed(() => {
   return Intl.NumberFormat("id-ID", {
@@ -25,6 +24,8 @@ const formattedPrice = computed(() => {
 const splittedCategories = computed(() => {
   return props.categories?.split(",").map((category) => category.trim());
 });
+
+const deleteItem = async () => {};
 </script>
 
 <template>
@@ -50,6 +51,9 @@ const splittedCategories = computed(() => {
           <CategoryButton
             v-for="category in splittedCategories"
             :category="category"
+            @filter-by-category="
+              (category) => $emit('filterByCategory', category)
+            "
           />
         </div>
       </div>
@@ -126,8 +130,11 @@ const splittedCategories = computed(() => {
               UBAH DATA
             </button>
           </li>
-          <li>
-            <button class="hover:text-gray-500 focus-within:text-gray-500">
+          <li v-if="transactions == 0">
+            <button
+              class="hover:text-gray-500 focus-within:text-gray-500"
+              @click="deleteItem"
+            >
               HAPUS DATA
             </button>
           </li>

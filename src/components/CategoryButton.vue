@@ -2,12 +2,11 @@
 import Button from "./Button.vue";
 
 defineProps<{ category: string }>();
+defineEmits(["filterByCategory"]);
 </script>
 
 <template>
-  <RouterLink :to="`/?category=${category.toLowerCase()}`">
-    <Button warning>
-      {{ category }}
-    </Button>
-  </RouterLink>
+  <Button @click="$emit('filterByCategory', category)" warning>
+    {{ category }}
+  </Button>
 </template>
