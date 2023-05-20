@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { Items } from "../../model";
+import type { Items, Transactions } from "../../model";
 
 contextBridge.exposeInMainWorld("db", {
   getItems: async (keyword?: string) => {
@@ -33,5 +33,8 @@ contextBridge.exposeInMainWorld("db", {
   },
   restockItem: async (item: Items, qty: number) => {
     return await ipcRenderer.invoke("restock-item", item, qty);
+  },
+  saveTransaction: async (transaction: Transactions) => {
+    return await ipcRenderer.invoke("save-transaction", transaction);
   },
 });

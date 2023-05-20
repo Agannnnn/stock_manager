@@ -8,6 +8,7 @@ const props = defineProps<{ item: Items }>();
 const emits = defineEmits([
   "showEditForm",
   "showRestockForm",
+  "showNewTransactionForm",
   "handleCategoryButton",
   "refreshItems",
 ]);
@@ -122,7 +123,10 @@ const deleteItem = async () => {
             </RouterLink>
           </li>
           <li class="border-b-2 pb-1 border-primary">
-            <button class="hover:text-gray-500 focus-within:text-gray-500">
+            <button
+              class="hover:text-gray-500 focus-within:text-gray-500"
+              @click="$emit('showNewTransactionForm', item)"
+            >
               CATAT PEMBELIAN
             </button>
           </li>

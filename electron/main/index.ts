@@ -291,3 +291,25 @@ const restockItem = async (item: Items, qty: number) => {
   return true;
 };
 ipcMain.handle("restock-item", (_, ...args) => restockItem(args[0], args[1]));
+
+// Save Purchase Transaction
+const saveTransaction = async (transaction: Transactions) => {
+  await sql`UPDATE items SET qty = qty - ${transaction.qty} WHERE code = ${transaction.item} RETURNING code`;
+  await sql`INSERT INTO transactions ${sql(
+    transaction,
+    "item",
+    "qty",
+    "cust_name",
+    "cust_phone",
+    "cust_address",
+    "type"
+  )} RETURNING timestamp`;
+
+  new Notification({
+    icon: join(process.env.PUBLIC, "favicon.ico"),
+    title: "Proses Berhasil",
+    body: "Restock telah dicatat",
+  }).show();
+  return true;
+};
+ipcMain.handle("save-transaction", (_, ...args) => saveTransaction(args[0]));

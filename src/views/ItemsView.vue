@@ -5,6 +5,7 @@ import Button from "../components/Button.vue";
 import Container from "../components/Container.vue";
 import ItemCard from "../components/ItemCard.vue";
 import ItemForm from "../components/ItemForm.vue";
+import NewTransactionForm from "../components/NewTransactionForm.vue";
 import RestockForm from "../components/RestockForm.vue";
 import SearchBar from "../components/SearchBar.vue";
 
@@ -14,6 +15,7 @@ const items = ref(
 );
 const saveItem = ref<{ open: boolean; item?: Items }>({ open: false });
 const restockItem = ref<{ open: boolean; item?: Items }>({ open: false });
+const newTransaction = ref<{ open: boolean; item?: Items }>({ open: false });
 
 const refreshItems = async () => {
   items.value = (await (window as any).db.getItems(keyword.value)) as Items[];
@@ -34,6 +36,14 @@ const closeRestockForm = () => {
   restockItem.value.open = false;
   refreshItems();
 };
+const showNewTransactionForm = (item: Items) => {
+  newTransaction.value.open = true;
+  newTransaction.value.item = item;
+};
+const closeNewTransactionForm = () => {
+  newTransaction.value.open = false;
+  refreshItems();
+};
 
 watch(keyword, async (val) => {
   items.value = await (window as any).db.getItems(val);
@@ -52,6 +62,12 @@ watch(keyword, async (val) => {
     :item="restockItem.item"
     @close-form="closeRestockForm"
   />
+
+  <NewTransactionForm
+    v-if="newTransaction.open"
+    :item="newTransaction.item"
+    @close-form="closeNewTransactionForm"
+  />
   <br />
   <SearchBar v-model:keyword="keyword" />
   <br />
@@ -66,6 +82,7 @@ watch(keyword, async (val) => {
       @handle-category-button="(category) => (keyword = category)"
       @refresh-items="refreshItems"
       @show-edit-form="showSaveForm"
+      @show-new-transaction-form="showNewTransactionForm"
       @show-restock-form="showRestockForm"
     />
   </Container>
