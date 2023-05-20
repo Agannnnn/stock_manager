@@ -4,23 +4,16 @@ import { Items } from "../../model";
 import Button from "./Button.vue";
 import Form from "./Form.vue";
 
-const props = defineProps<{
-  code?: string;
-  name?: string;
-  image?: string;
-  qty?: number;
-  price?: number;
-  categories?: string;
-}>();
+const props = defineProps<{ item?: Items }>();
 const emits = defineEmits(["closeForm"]);
 
-const inputCode = ref(props.code ?? "");
-const inputName = ref(props.name ?? "");
+const inputCode = ref(props.item?.code ?? "");
+const inputName = ref(props.item?.name ?? "");
 const inputImage = ref<File | null>(null);
-const inputQty = ref(props.qty ?? 1);
-const inputPrice = ref(props.price ?? 1);
-const inputCategories = ref(props.categories ?? "");
-const imagePreview = ref(props.image ?? "");
+const inputQty = ref(props.item?.qty ?? 1);
+const inputPrice = ref(props.item?.price ?? 1);
+const inputCategories = ref(props.item?.categories ?? "");
+const imagePreview = ref(props.item?.image ?? "");
 
 watch(inputImage, (image) => {
   URL.revokeObjectURL(imagePreview.value);
@@ -41,7 +34,7 @@ const handleUploadFile = (e: Event) => {
 };
 
 const saveForm = async () => {
-  if (props.code == null) {
+  if (props.item?.code == null) {
     const item: Items = {
       code: inputCode.value,
       name: inputName.value,
@@ -55,7 +48,7 @@ const saveForm = async () => {
     return;
   }
   const item: Items = {
-    code: props.code,
+    code: props.item?.code,
     name: inputName.value,
     image: inputImage.value!.name,
     qty: inputQty.value,
@@ -93,8 +86,8 @@ const saveForm = async () => {
               id="item-code"
               placeholder="MASUKAN KODE ITEM"
               class="border-2 border-primary rounded-md p-2 read-only:bg-gray-100 read-only:text-gray-400"
-              :readonly="code ? true : false"
-              :disabled="code ? true : false"
+              :readonly="item?.code ? true : false"
+              :disabled="item?.code ? true : false"
             />
           </div>
           <div class="flex flex-col gap-1">
