@@ -108,7 +108,11 @@ app.on("activate", () => {
 // Fetch all items
 const getAllItems = async () => {
   win.setProgressBar(2);
-  const items = (await sql`select * from items`).map((item) => {
+  const items = (
+    await sql`SELECT items.*, COUNT(transactions.item) AS transactions FROM items
+    LEFT JOIN transactions ON transactions.item = items.code
+    GROUP BY items.code`
+  ).map((item) => {
     item.imageExt = extname(item.image);
     item.imageBuffer = nativeImage
       .createFromPath(join(uploadedImages, `/${item.image}`))
@@ -128,7 +132,12 @@ const findItems = async (keyword: string) => {
 
   win.setProgressBar(2);
   const items = (
-    await sql`select * from items where LOWER(code) LIKE ${`%${keyword}%`} OR LOWER(name) LIKE ${`%${keyword}%`} OR LOWER(categories) LIKE ${`%${keyword}%`}`
+    await sql`SELECT items.*, COUNT(transactions.item) AS transactions FROM items
+    LEFT JOIN transactions ON transactions.item = items.code
+    WHERE LOWER(code) LIKE ${`%${keyword}%`}
+    OR LOWER(name) LIKE ${`%${keyword}%`}
+    OR LOWER(categories) LIKE ${`%${keyword}%`}
+    GROUP BY items.code`
   ).map((item) => {
     item.imageExt = extname(item.image);
     item.imageBuffer = nativeImage
@@ -221,3 +230,27 @@ const updateItem = async (item: Items, uploadedImagePath: string) => {
   }
 };
 ipcMain.handle("update-item", (_, ...args) => updateItem(args[0], args[1]));
+
+// Delete Item
+const deleteItem = async (item: Items) => {
+  if (item.transactions > 0) {
+    new Notification({
+      icon: join(process.env.PUBLIC, "favicon.ico"),
+      title: "Proses Gagal",
+      body: "Item sudah memiliki transaksi",
+    }).show();
+    return false;
+  }
+
+  const images =
+    await sql`DELETE FROM items WHERE code = ${item.code} RETURNING image`;
+  rmSync(join(uploadedImages, `/${images[0].image}`));
+
+  new Notification({
+    icon: join(process.env.PUBLIC, "favicon.ico"),
+    title: "Proses Berhasil",
+    body: "Item terhapus",
+  }).show();
+  return true;
+};
+ipcMain.handle("delete-item", (_, ...args) => deleteItem(args[0]));

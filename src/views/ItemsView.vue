@@ -14,9 +14,12 @@ const items = ref(
 const saveItem = ref<{ open: boolean; item?: Items }>({ open: false });
 const restockItem = ref<{ open: boolean; item?: Items }>({ open: false });
 
+const refreshItems = async () => {
+  items.value = (await (window as any).db.getItems(keyword.value)) as Items[];
+};
 const closeSaveItem = async () => {
   saveItem.value.open = false;
-  items.value = (await (window as any).db.getItems(keyword.value)) as Items[];
+  refreshItems();
 };
 
 watch(keyword, async (val) => {
@@ -58,6 +61,7 @@ watch(keyword, async (val) => {
       :qty="Number.parseInt(`${item.qty}`)"
       :transactions="Number.parseInt(`${item.transactions}`) ?? 0"
       @filter-by-category="(category) => (keyword = category)"
+      @refresh-items="refreshItems"
     />
   </Container>
 </template>

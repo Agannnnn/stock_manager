@@ -13,7 +13,12 @@ interface Items {
   transactions?: number;
 }
 const props = defineProps<Items>();
-defineEmits(["editItem", "restockItem", "filterByCategory", "refreshItems"]);
+const emits = defineEmits([
+  "editItem",
+  "restockItem",
+  "filterByCategory",
+  "refreshItems",
+]);
 
 const formattedPrice = computed(() => {
   return Intl.NumberFormat("id-ID", {
@@ -25,7 +30,22 @@ const splittedCategories = computed(() => {
   return props.categories?.split(",").map((category) => category.trim());
 });
 
-const deleteItem = async () => {};
+const deleteItem = async () => {
+  const itemDeleted = await (window as any).db.deleteItem({
+    code: props.code,
+    name: props.name,
+    categories: props.categories,
+    qty: props.qty,
+    price: props.price,
+    image: props.image,
+    transactions: props.transactions,
+  } as Items);
+
+  if (itemDeleted) {
+    emits("refreshItems");
+    return;
+  }
+};
 </script>
 
 <template>
