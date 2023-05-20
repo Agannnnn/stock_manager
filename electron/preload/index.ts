@@ -22,6 +22,9 @@ contextBridge.exposeInMainWorld("db", {
 
     return items;
   },
+  getItem: async (item: string) => {
+    return await ipcRenderer.invoke("get-item", item);
+  },
   saveItem: async (item: Items, image: File) => {
     return await ipcRenderer.invoke("save-item", item, image.path);
   },
@@ -36,5 +39,8 @@ contextBridge.exposeInMainWorld("db", {
   },
   saveTransaction: async (transaction: Transactions) => {
     return await ipcRenderer.invoke("save-transaction", transaction);
+  },
+  getTransactions: async (item?: string) => {
+    return await ipcRenderer.invoke("get-transactions", item);
   },
 });
