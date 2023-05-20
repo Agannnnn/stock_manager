@@ -141,6 +141,7 @@ const deleteItem = async () => {
                 $emit('editItem', {
                   code,
                   name,
+                  image,
                   categories,
                   price,
                   qty,
