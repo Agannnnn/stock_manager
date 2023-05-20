@@ -37,7 +37,7 @@ const handleUploadFile = (e: Event) => {
   }
   inputImage.value = (e.target as HTMLInputElement).files![0] as File;
 };
-const saveForm = () => {
+const saveForm = async () => {
   if (props.code == null) {
     const item: Items = {
       code: inputCode.value,
@@ -47,7 +47,8 @@ const saveForm = () => {
       price: inputPrice.value,
       categories: inputCategories.value,
     };
-    (window as any).db.saveItem(item, inputImage.value);
+    if (await (window as any).db.saveItem(item, inputImage.value))
+      emits("closeForm");
     return;
   }
 };
