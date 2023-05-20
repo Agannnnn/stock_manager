@@ -11,7 +11,7 @@ import { copyFileSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { release } from "node:os";
 import { extname, join } from "node:path";
 import postgres, { Sql } from "postgres";
-import { Items } from "../../model";
+import { Items, Transactions } from "../../model";
 
 process.env.DIST_ELECTRON = join(__dirname, "..");
 process.env.DIST = join(process.env.DIST_ELECTRON, "../dist");
@@ -213,7 +213,7 @@ const updateItem = async (item: Items, uploadedImagePath: string) => {
   const filename = saveImage(uploadedImagePath);
   item.image = filename;
 
-  const itemCode = await sql`update items set ${sql(
+  const itemCode = await sql`UPDATE items SET ${sql(
     item,
     "name",
     "image",
@@ -263,3 +263,31 @@ const deleteItem = async (item: Items) => {
   return true;
 };
 ipcMain.handle("delete-item", (_, ...args) => deleteItem(args[0]));
+
+// Restock Item
+const restockItem = async (item: Items, qty: number) => {
+  item.qty = Number.parseInt(`${item.qty}`) + qty;
+  await sql`UPDATE items SET ${sql(item, "qty")} WHERE code = ${
+    item.code
+  } RETURNING code`;
+
+  const transaction: Transactions = {
+    item: item.code,
+    qty,
+    type: "Restock",
+  };
+  await sql`INSERT INTO transactions ${sql(
+    transaction,
+    "item",
+    "qty",
+    "type"
+  )}`;
+
+  new Notification({
+    icon: join(process.env.PUBLIC, "favicon.ico"),
+    title: "Proses Berhasil",
+    body: "Restock telah dicatat",
+  }).show();
+  return true;
+};
+ipcMain.handle("restock-item", (_, ...args) => restockItem(args[0], args[1]));

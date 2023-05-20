@@ -5,6 +5,7 @@ import Button from "../components/Button.vue";
 import Container from "../components/Container.vue";
 import ItemCard from "../components/ItemCard.vue";
 import ItemForm from "../components/ItemForm.vue";
+import RestockForm from "../components/RestockForm.vue";
 import SearchBar from "../components/SearchBar.vue";
 
 const keyword = ref("");
@@ -17,13 +18,21 @@ const restockItem = ref<{ open: boolean; item?: Items }>({ open: false });
 const refreshItems = async () => {
   items.value = (await (window as any).db.getItems(keyword.value)) as Items[];
 };
-const closeSaveItem = async () => {
+const showSaveForm = (item: Items) => {
+  saveItem.value.open = true;
+  saveItem.value.item = item;
+};
+const closeSaveForm = () => {
   saveItem.value.open = false;
   refreshItems();
 };
-const editItem = (item: Items) => {
-  saveItem.value.open = true;
-  saveItem.value.item = item;
+const showRestockForm = (item: Items) => {
+  restockItem.value.open = true;
+  restockItem.value.item = item;
+};
+const closeRestockForm = () => {
+  restockItem.value.open = false;
+  refreshItems();
 };
 
 watch(keyword, async (val) => {
@@ -34,19 +43,15 @@ watch(keyword, async (val) => {
 <template>
   <ItemForm
     v-if="saveItem.open"
-    @close-form="closeSaveItem"
-    :code="saveItem.item?.code"
-    :name="saveItem.item?.name"
-    :image="saveItem.item?.image"
-    :qty="saveItem.item?.qty"
-    :price="saveItem.item?.price"
-    :categories="saveItem.item?.categories"
+    :item="saveItem.item"
+    @close-form="closeSaveForm"
   />
 
-  <!-- <RestockForm
-    v-if="restockForm.active"
-    @close-form="() => (restockForm.active = !restockForm.active)"
-  /> -->
+  <RestockForm
+    v-if="restockItem.open"
+    :item="restockItem.item"
+    @close-form="closeRestockForm"
+  />
   <br />
   <SearchBar v-model:keyword="keyword" />
   <br />
@@ -57,16 +62,11 @@ watch(keyword, async (val) => {
   <Container class="flex flex-col gap-3">
     <ItemCard
       v-for="item in items"
-      :code="item.code"
-      :name="item.name"
-      :image="item.image ?? ''"
-      :categories="item.categories"
-      :price="Number.parseInt(`${item.price}`)"
-      :qty="Number.parseInt(`${item.qty}`)"
-      :transactions="Number.parseInt(`${item.transactions}`) ?? 0"
-      @filter-by-category="(category) => (keyword = category)"
+      :item="item"
+      @handle-category-button="(category) => (keyword = category)"
       @refresh-items="refreshItems"
-      @edit-item="editItem"
+      @show-edit-form="showSaveForm"
+      @show-restock-form="showRestockForm"
     />
   </Container>
 </template>

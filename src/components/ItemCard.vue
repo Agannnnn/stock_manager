@@ -1,22 +1,14 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { Items } from "../../model";
 import Button from "./Button.vue";
 import CategoryButton from "./CategoryButton.vue";
 
-interface Items {
-  code: string;
-  name: string;
-  image: string;
-  qty: number;
-  price: number;
-  categories: string;
-  transactions?: number;
-}
-const props = defineProps<Items>();
+const props = defineProps<{ item: Items }>();
 const emits = defineEmits([
-  "editItem",
-  "restockItem",
-  "filterByCategory",
+  "showEditForm",
+  "showRestockForm",
+  "handleCategoryButton",
   "refreshItems",
 ]);
 
@@ -24,21 +16,21 @@ const formattedPrice = computed(() => {
   return Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
-  }).format(props.price);
+  }).format(props.item.price);
 });
 const splittedCategories = computed(() => {
-  return props.categories?.split(",").map((category) => category.trim());
+  return props.item.categories?.split(",").map((category) => category.trim());
 });
 
 const deleteItem = async () => {
   const itemDeleted = await (window as any).db.deleteItem({
-    code: props.code,
-    name: props.name,
-    categories: props.categories,
-    qty: props.qty,
-    price: props.price,
-    image: props.image,
-    transactions: props.transactions,
+    code: props.item.code,
+    name: props.item.name,
+    categories: props.item.categories,
+    qty: props.item.qty,
+    price: props.item.price,
+    image: props.item.image,
+    transactions: props.item.transactions,
   } as Items);
 
   if (itemDeleted) {
@@ -53,7 +45,7 @@ const deleteItem = async () => {
     class="flex flex-row items-start gap-5 p-3 rounded-lg bg-white text-primary border-2 border-primary shadow-sm shadow-primary"
     style="grid-template-columns: 1fr 2fr 1fr"
   >
-    <img v-if="image" :src="image" class="rounded-md w-[240px]" />
+    <img v-if="item.image" :src="item.image" class="rounded-md w-[240px]" />
     <div v-else class="animate-pulse self-stretch">
       <span
         class="block bg-current w-[240px] h-full opacity-50 rounded-md"
@@ -61,25 +53,25 @@ const deleteItem = async () => {
     </div>
 
     <div
-      v-if="code && name && categories && price && qty"
+      v-if="item.code && item.name && item.categories && item.price && item.qty"
       class="flex flex-col justify-between self-stretch grow"
     >
       <div>
-        <h2 class="text-3xl font-semibold">{{ code }}</h2>
-        <h4 class="text-xl font-semibold">{{ name }}</h4>
+        <h2 class="text-3xl font-semibold">{{ item.code }}</h2>
+        <h4 class="text-xl font-semibold">{{ item.name }}</h4>
         <div class="flex flex-row flex-wrap gap-1 mt-2">
           <CategoryButton
             v-for="category in splittedCategories"
             :category="category"
             @filter-by-category="
-              (category) => $emit('filterByCategory', category)
+              (category) => $emit('handleCategoryButton', category)
             "
           />
         </div>
       </div>
       <div>
         <p class="font-semibold">HARGA {{ formattedPrice }}</p>
-        <p class="font-semibold">TERSEDIA {{ qty }} BOX</p>
+        <p class="font-semibold">TERSEDIA {{ item.qty }} BOX</p>
       </div>
     </div>
     <div v-else class="flex flex-col justify-between h-full anime-pulse">
@@ -117,7 +109,7 @@ const deleteItem = async () => {
       </div>
     </div>
 
-    <div v-if="code" class="flex flex-row gap-2 justify-end flex-wrap">
+    <div v-if="item.code" class="flex flex-row gap-2 justify-end flex-wrap">
       <!-- Transaction Button -->
       <div class="relative">
         <Button warning class="peer">TRANSAKSI</Button>
@@ -125,7 +117,7 @@ const deleteItem = async () => {
           class="hidden active:flex peer-focus-within:flex flex-col gap-1 py-2 px-2 border-2 border-primary rounded-md bg-warning text-primary font-semibold absolute top-full right-0 mt-2 text-right w-max shadow-sm shadow-primary"
         >
           <li class="border-b-2 pb-1 border-primary">
-            <RouterLink :to="`/transactions/${code}`">
+            <RouterLink :to="`/transactions/${item.code}`">
               DAFTAR TRANSAKSI
             </RouterLink>
           </li>
@@ -135,7 +127,10 @@ const deleteItem = async () => {
             </button>
           </li>
           <li>
-            <button class="hover:text-gray-500 focus-within:text-gray-500">
+            <button
+              class="hover:text-gray-500 focus-within:text-gray-500"
+              @click="$emit('showRestockForm', item)"
+            >
               RESTOK ITEM
             </button>
           </li>
@@ -150,21 +145,12 @@ const deleteItem = async () => {
           <li class="border-b-2 pb-1 border-primary">
             <button
               class="hover:text-gray-500 focus-within:text-gray-500"
-              @click="
-                $emit('editItem', {
-                  code,
-                  name,
-                  image,
-                  categories,
-                  price,
-                  qty,
-                } as Items)
-              "
+              @click="$emit('showEditForm', item)"
             >
               UBAH DATA
             </button>
           </li>
-          <li v-if="transactions == 0">
+          <li v-if="item.transactions == 0">
             <button
               class="hover:text-gray-500 focus-within:text-gray-500"
               @click="deleteItem"
