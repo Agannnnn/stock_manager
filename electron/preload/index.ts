@@ -17,13 +17,12 @@ contextBridge.exposeInMainWorld("db", {
           type: `image/${(item.imageExt as string).substring(1)}`,
         })
       );
-
       return item;
     });
 
     return items;
   },
   saveItem: async (item: Items, image: File) => {
-    await ipcRenderer.invoke("save-item", item, image.path);
+    return await ipcRenderer.invoke("save-item", item, image.path);
   },
 });
