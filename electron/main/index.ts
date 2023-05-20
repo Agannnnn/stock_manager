@@ -129,6 +129,19 @@ const getAllItems = async () => {
 };
 ipcMain.handle("get-all-items", getAllItems);
 
+// Get item by its code
+const getItem = async (item: string): Promise<Items> => {
+  const items = await sql<
+    Items[]
+  >`SELECT items.*, COUNT(transactions.item) AS transactions FROM items
+    LEFT JOIN transactions ON transactions.item = items.code
+    WHERE items.code = ${item}
+    GROUP BY items.code`;
+
+  return items[0];
+};
+ipcMain.handle("get-item", (_, ...args) => getItem(args[0]));
+
 // Fetch items that mathces search keyword
 const findItems = async (keyword: string) => {
   keyword = keyword.toLowerCase();
@@ -313,3 +326,17 @@ const saveTransaction = async (transaction: Transactions) => {
   return true;
 };
 ipcMain.handle("save-transaction", (_, ...args) => saveTransaction(args[0]));
+
+// Fetch All Transactions
+const getTransactions = async (item?: string) => {
+  if (item?.length > 0) {
+    const transactions = await sql<
+      Transactions[]
+    >`SELECT * FROM transactions WHERE item = ${item}`;
+    return transactions;
+  }
+
+  const transactions = await sql<Transactions[]>`SELECT * FROM transactions`;
+  return transactions;
+};
+ipcMain.handle("get-transactions", (_, ...args) => getTransactions(args[0]));
