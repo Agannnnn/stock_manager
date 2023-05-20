@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { ref, watch } from "vue";
 import { Items } from "../../model";
 import Button from "./Button.vue";
 import Form from "./Form.vue";
@@ -20,13 +20,15 @@ const inputImage = ref<File | null>(null);
 const inputQty = ref(props.qty ?? 1);
 const inputPrice = ref(props.price ?? 1);
 const inputCategories = ref(props.categories ?? "");
+const imagePreview = ref(props.image ?? "");
 
-const imagePath = computed(() => {
-  URL.revokeObjectURL(imagePath.value);
-
-  if (props.image) return props.image;
-  else if (inputImage.value) return URL.createObjectURL(inputImage.value);
-  else return "";
+watch(inputImage, (image) => {
+  URL.revokeObjectURL(imagePreview.value);
+  if (image) {
+    imagePreview.value = URL.createObjectURL(image);
+    return;
+  }
+  imagePreview.value = "";
 });
 
 const handleUploadFile = (e: Event) => {
@@ -37,6 +39,7 @@ const handleUploadFile = (e: Event) => {
   }
   inputImage.value = (e.target as HTMLInputElement).files![0] as File;
 };
+
 const saveForm = async () => {
   if (props.code == null) {
     const item: Items = {
@@ -72,7 +75,7 @@ const saveForm = async () => {
     >
       <div class="grid grid-cols-2 gap-4">
         <div class="flex flex-col justify-between items-start gap-4">
-          <img :src="imagePath" class="rounded-md" />
+          <img :src="imagePreview" class="rounded-md" />
           <input
             @change="handleUploadFile"
             required
