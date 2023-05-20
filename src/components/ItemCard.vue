@@ -115,7 +115,7 @@ const deleteItem = async () => {
       <div class="relative">
         <Button warning class="peer">TRANSAKSI</Button>
         <ul
-          class="hidden active:flex peer-focus-within:flex flex-col gap-1 py-2 px-2 border-2 border-primary rounded-md bg-warning text-primary font-semibold absolute top-full right-0 mt-2 text-right w-max shadow-sm shadow-primary"
+          class="hidden active:flex peer-focus-within:flex flex-col gap-1 py-2 px-2 border-2 border-primary rounded-md bg-warning text-primary font-semibold absolute top-full right-0 mt-2 text-right w-max shadow-sm shadow-primary z-10"
         >
           <li class="border-b-2 pb-1 border-primary">
             <RouterLink :to="`/transactions/${item.code}`">
@@ -144,7 +144,7 @@ const deleteItem = async () => {
       <div class="relative">
         <Button warning class="peer">EDIT</Button>
         <ul
-          class="hidden active:flex peer-focus-within:flex flex-col gap-1 py-2 px-2 border-2 border-primary rounded-md bg-warning text-primary font-semibold absolute top-full right-0 mt-2 text-right w-max shadow-sm shadow-primary"
+          class="hidden active:flex peer-focus-within:flex flex-col gap-1 py-2 px-2 border-2 border-primary rounded-md bg-warning text-primary font-semibold absolute top-full right-0 mt-2 text-right w-max shadow-sm shadow-primary z-10"
         >
           <li class="border-b-2 pb-1 border-primary">
             <button
