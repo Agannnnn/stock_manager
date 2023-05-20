@@ -3,26 +3,38 @@ import { ref, watch } from "vue";
 import { Items } from "../../model";
 import Button from "../components/Button.vue";
 import Container from "../components/Container.vue";
-import SearchBar from "../components/SearchBar.vue";
 import ItemCard from "../components/ItemCard.vue";
+import ItemForm from "../components/ItemForm.vue";
+import SearchBar from "../components/SearchBar.vue";
 
 const keyword = ref("");
 const items = ref(
   (await (window as any).db.getItems(keyword.value)) as Items[]
 );
+const saveItem = ref<{ open: boolean; item?: Items }>({ open: false });
+const restockItem = ref<{ open: boolean; item?: Items }>({ open: false });
+
+const closeSaveItem = async () => {
+  saveItem.value.open = false;
+  items.value = (await (window as any).db.getItems(keyword.value)) as Items[];
+};
 
 watch(keyword, async (val) => {
   items.value = await (window as any).db.getItems(val);
 });
-
-watch(keyword, (val) => {});
 </script>
 
 <template>
-  <!-- <ItemForm
-    v-if="itemForm.active"
-    @close-form="() => (itemForm.active = !itemForm.active)"
-  /> -->
+  <ItemForm
+    v-if="saveItem.open"
+    @close-form="closeSaveItem"
+    :code="saveItem.item?.code"
+    :name="saveItem.item?.name"
+    :image="saveItem.item?.image"
+    :qty="saveItem.item?.qty"
+    :price="saveItem.item?.price"
+    :categories="saveItem.item?.categories"
+  />
 
   <!-- <RestockForm
     v-if="restockForm.active"
@@ -32,7 +44,7 @@ watch(keyword, (val) => {});
   <SearchBar v-model:keyword="keyword" />
   <br />
   <Container class="flex flex-row justify-end gap-3">
-    <Button> TAMBAH ENTRI ITEM </Button>
+    <Button warning @click="saveItem.open = true"> TAMBAH ENTRI ITEM </Button>
   </Container>
   <br />
   <Container class="flex flex-col gap-3">
@@ -44,6 +56,8 @@ watch(keyword, (val) => {});
       :categories="item.categories"
       :price="Number.parseInt(`${item.price}`)"
       :qty="Number.parseInt(`${item.qty}`)"
+      :transactions="Number.parseInt(`${item.transactions}`) ?? 0"
+      @filter-by-category="(category) => (keyword = category)"
     />
   </Container>
 </template>
