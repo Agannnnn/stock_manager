@@ -15,5 +15,5 @@ export interface Transactions {
   cust_phone?: string;
   cust_address?: string;
   type: "Sell" | "Restock";
-  timetamp?: Date;
+  timestamp?: Date;
 }
