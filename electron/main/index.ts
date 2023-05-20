@@ -105,6 +105,11 @@ app.on("activate", () => {
   }
 });
 
+const loadImage = (path: string) => {
+  return nativeImage.createFromPath(join(uploadedImages, `/${path}`)).toJPEG(50)
+    .buffer;
+};
+
 // Fetch all items
 const getAllItems = async () => {
   win.setProgressBar(2);
@@ -114,9 +119,7 @@ const getAllItems = async () => {
     GROUP BY items.code`
   ).map((item) => {
     item.imageExt = extname(item.image);
-    item.imageBuffer = nativeImage
-      .createFromPath(join(uploadedImages, `/${item.image}`))
-      .toJPEG(75).buffer;
+    item.imageBuffer = loadImage(item.image);
 
     return item;
   });
@@ -140,9 +143,7 @@ const findItems = async (keyword: string) => {
     GROUP BY items.code`
   ).map((item) => {
     item.imageExt = extname(item.image);
-    item.imageBuffer = nativeImage
-      .createFromPath(join(uploadedImages, `/${item.image}`))
-      .toJPEG(75).buffer;
+    item.imageBuffer = loadImage(item.image);
 
     return item;
   });
