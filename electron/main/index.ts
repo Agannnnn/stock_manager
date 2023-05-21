@@ -333,7 +333,9 @@ const getTransactions = async (item?: string) => {
     return transactions;
   }
 
-  const transactions = await sql<Transactions[]>`SELECT * FROM transactions`;
+  const transactions = await sql<
+    Transactions[]
+  >`SELECT * FROM transactions ORDER BY timestamp DESC`;
   return transactions;
 };
 ipcMain.handle("get-transactions", (_, ...args) => getTransactions(args[0]));
