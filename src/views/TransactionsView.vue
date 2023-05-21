@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { Transactions } from "../../model";
 import Container from "../components/Container.vue";
+import IncomeStatus from "../components/IncomeStatus.vue";
 import RestockCard from "../components/RestockCard.vue";
 import TransactionCard from "../components/TransactionCard.vue";
-import IncomeStatus from "../components/IncomeStatus.vue";
 
 const route = useRoute();
 
@@ -29,7 +29,7 @@ watch(
     v-if="$route.params.code"
     :item="($route.params.code as string)"
   />
-  <Container class="flex flex-row flex-wrap justify-between gap-y-4 mt-5">
+  <Container class="flex flex-row flex-wrap gap-2 justify-center mt-5">
     <div v-for="transaction in transactions">
       <TransactionCard
         v-if="transaction.type == 'Sell'"
