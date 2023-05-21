@@ -11,7 +11,7 @@ const newQty = ref(1);
 
 const restock = async () => {
   if (
-    await await (window as any).db.restockItem({ ...props.item }, newQty.value)
+    await await (window as any).db.restockItem(props.item?.code, newQty.value)
   )
     emits("closeForm");
 };

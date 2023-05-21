@@ -34,7 +34,7 @@ contextBridge.exposeInMainWorld("db", {
   deleteItem: async (item: Items) => {
     return await ipcRenderer.invoke("delete-item", item);
   },
-  restockItem: async (item: Items, qty: number) => {
+  restockItem: async (item: string, qty: number) => {
     return await ipcRenderer.invoke("restock-item", item, qty);
   },
   saveTransaction: async (transaction: Transactions) => {

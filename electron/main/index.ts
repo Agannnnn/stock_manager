@@ -278,14 +278,11 @@ const deleteItem = async (item: Items) => {
 ipcMain.handle("delete-item", (_, ...args) => deleteItem(args[0]));
 
 // Restock Item
-const restockItem = async (item: Items, qty: number) => {
-  item.qty = Number.parseInt(`${item.qty}`) + qty;
-  await sql`UPDATE items SET ${sql(item, "qty")} WHERE code = ${
-    item.code
-  } RETURNING code`;
+const restockItem = async (item: string, qty: number) => {
+  await sql`UPDATE items SET qty = qty + ${qty} WHERE code = ${item} RETURNING code`;
 
   const transaction: Transactions = {
-    item: item.code,
+    item: item,
     qty,
     type: "Restock",
   };
